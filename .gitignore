@@ -1,8 +1,9 @@
 data/
 scripts/bkp/
 results/
+config/old/
 
 *.Rproj
 .Rhistory
 .Rproj.user/
-
+*.log

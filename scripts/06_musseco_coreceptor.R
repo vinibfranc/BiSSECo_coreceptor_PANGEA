@@ -16,12 +16,15 @@ load_tree_adjust_headers <- function(path_tr, pred_df) {
  tr
 }
 
+RES_F <- "results"
+RDS_F <- glue("{RES_F}/rds")
+
 # load trees (change path if needed)
-timetr_v3 <- load_tree_adjust_headers("data/timetr2_mlscluster_popart_v3.rds", wp_nt_df)
+timetr_v3 <- load_tree_adjust_headers(glue("{RDS_F}/timetr2_mlscluster_popart_v3.rds"), wp_nt_df)
 timetr_v3$adjusted.mean.rate; timetr_v3$timeOfMRCA
 # [1] 0.003571885
 # [1] 1989.418
-timetr_env <- load_tree_adjust_headers("data/timetr_mlscluster_popart_env.rds", wp_nt_df)
+timetr_env <- load_tree_adjust_headers(glue("{RDS_F}/timetr_mlscluster_popart_env.rds"), wp_nt_df)
 timetr_env$adjusted.mean.rate; timetr_env$timeOfMRCA
 # [1] 0.003179319
 # [1] 1972.893
@@ -56,20 +59,19 @@ gamma <- 1/10.2
 
 NCPU <- 3
 
-system("mkdir -p results/musseco_coreceptor")
+RES_MUS_PATH <- "results/musseco_coreceptor"
+system(glue("mkdir -p {RES_MUS_PATH}"))
 
 #v3
 fb_v3 <- fitbisseco(timetr_v3, isvariant_v3, Tg=1/gamma, mu=timetr_v3$adjusted.mean.rate, Net=NULL, theta0=log(c(15, .95, 1)),
                       mlesky_parms = list(tau = NULL, tau_lower = .1, tau_upper = 1e7, ncpu = NCPU, model = 1 ) )
-saveRDS(fb_v3, "results/musseco_coreceptor/fb_v3.rds") #tau~13
+saveRDS(fb_v3, glue("{RES_MUS_PATH}/fb_v3.rds")) #tau~13
 
 fb_env <- fitbisseco(timetr_env, isvariant_env, Tg=1/gamma, mu=timetr_env$adjusted.mean.rate, Net=NULL, theta0=log(c(15, .95, 1)),
                      mlesky_parms = list(tau = NULL, tau_lower = .1, tau_upper = 1e7, ncpu = NCPU, model = 1 ) )
-saveRDS(fb_env, "results/musseco_coreceptor/fb_env.rds") #tau~21
+saveRDS(fb_env, glue("{RES_MUS_PATH}/fb_env.rds")) #tau~21
 
 mus <- c(timetr_v3$adjusted.mean.rate, timetr_env$adjusted.mean.rate)
-
-RES_MUS_PATH <- "results/musseco_coreceptor"
 
 # V3 loop
 fb_v3 <- readRDS(glue("{RES_MUS_PATH}/fb_v3.rds"))
@@ -111,7 +113,6 @@ plot_alpha_omega <- function(fbdf) {
 }
 
 plot_ao <- plot_alpha_omega(fb_all)
-#ggsave(filename="results/figs/fig_alpha_omega_genes.pdf", plot=plot_ao, units="cm", width=15, height=12, dpi=300)
 
 # combine all Ne estimates
 attrib_rename_ne_cols <- function(ne_obj, id_val) {
@@ -137,7 +138,6 @@ plot_ne <- function(nedf,logy=T) {
 }
 
 plot_ne_all_no_ci <- plot_ne(ne_all)
-#ggsave(filename="results/figs/supp_fig_ne_genes.pdf", plot=plot_ne_all, units="cm", width=18, height=15, dpi=300)
 
 # parboot to get CIs on Ne
 pboot_v3 <- mlesky::parboot(fb_v3$mleskyfit, nrep=100, ncpu = NCPU, dd=F)

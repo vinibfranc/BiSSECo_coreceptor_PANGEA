@@ -55,14 +55,14 @@ split_fasta_coreceptor("data/coreceptor_analysis/popart_global_aln_naive_refB_en
 
 # IMPORTANT: submit files above in Web PSSM (subtype C)
 
+RES_COREC_AN <- "results/coreceptor_analysis"
+
 summarise_coreceptor_usage_webpssm <- function(file_path_res, out_pref) {
  df_res_wp <- read.csv(file=file_path_res, header=T) #encoding = "UTF-16"
  #df_res_wp <- fread(file=file_path_res, header=T, encoding="UTF-8")
  df_res_wp <- df_res_wp[!is.na(df_res_wp$pred),]
  df_res_wp$pred_wp <- df_res_wp$pred
- #print(head(df_res_wp))
  df_res_wp_summ <- df_res_wp %>% summarise(mean_score=mean(score, na.rm=T), median_score=median(score, na.rm=T), prop_x4_capable = mean(pred == 1, na.rm=T))
- #View(df_res_wp_summ)
  df_res_wp$pred <- as.factor(df_res_wp$pred)
  df_res_wp$r5_x4_lbl <- ifelse(df_res_wp$pred==1, "X4", "R5")
  df_res_wp$r5_x4_lbl <- as.factor(df_res_wp$r5_x4_lbl)
@@ -72,12 +72,12 @@ summarise_coreceptor_usage_webpssm <- function(file_path_res, out_pref) {
   geom_histogram(aes(y = ..density..), position = "identity", alpha = 0.75, bins = 30) + 
   scale_fill_manual(values = cbb_palette_r5_x4, name="Predicted\ncoreceptor") +
   labs(x = "WebPSSM Score", y = "Density") + theme_bw() + common_plot_config #title = "WebPSSM score distribution by predicted X4 (1) and R5 (0)"
- ggsave(plot=pl, file=glue("results/coreceptor_analysis/web_pssm/{out_pref}_hist.png"), dpi=300, width=8, height=6)
+ ggsave(plot=pl, file=glue("{RES_COREC_AN}/web_pssm/{out_pref}_hist.png"), dpi=300, width=8, height=6)
  
  # boxplot
  pl2 <- ggplot(df_res_wp, aes(x=r5_x4_lbl, y=score)) + 
   geom_boxplot() + labs(x="Prediction (R5 or X4)", y="Score") + theme_bw() #title="Box Plot of Score by Prediction"
- ggsave(plot=pl2, file=glue("results/coreceptor_analysis/web_pssm/{out_pref}_boxplot.png"), dpi=300, width=8, height=6)
+ ggsave(plot=pl2, file=glue("{RES_COREC_AN}/web_pssm/{out_pref}_boxplot.png"), dpi=300, width=8, height=6)
  
  # Extract the year (convert e.g. 17 -> 2017)
  df_res_wp$year <- as.numeric(sub(".*_(\\d{2})_.*", "\\1", df_res_wp$name)) + 2000
@@ -92,21 +92,21 @@ summarise_coreceptor_usage_webpssm <- function(file_path_res, out_pref) {
   geom_line(size = 1) + geom_point(size = 2) + scale_color_manual(values = cbb_palette_r5_x4, name="Predicted\ncoreceptor") +
   labs(x = "Year", y = "Proportion", colour = "Prediction") + #title = "Proportion of X4 (1) and R5 (0) over time"
   theme_bw() + theme(legend.position = "none") + common_plot_config + rotate_x_axis
- ggsave(plot=pl3, file=glue("results/coreceptor_analysis/web_pssm/{out_pref}_trend_0_1.png"), dpi=300, width=8, height=6)
+ ggsave(plot=pl3, file=glue("{RES_COREC_AN}/web_pssm/{out_pref}_trend_0_1.png"), dpi=300, width=8, height=6)
  
  # Plot trend in score over time
  trend_score <- df_res_wp %>% group_by(year) %>% summarise(mean_score = mean(score), .groups = "drop")
  #View(trend_score)
  pl4 <- ggplot(trend_score, aes(x = year, y = mean_score)) + geom_line(size = 1.2, colour = "blue") + geom_point(size = 2, colour = "blue") +
   labs(x = "Year", y = "Mean score") + theme_bw() #title = "Trend in score over time"
- ggsave(plot=pl4, file=glue("results/coreceptor_analysis/web_pssm/{out_pref}_trend_score.png"), dpi=300, width=8, height=6)
+ ggsave(plot=pl4, file=glue("{RES_COREC_AN}/web_pssm/{out_pref}_trend_score.png"), dpi=300, width=8, height=6)
  
  # Plot trend in score over time for r5_x4_lbl
  trend_score_pred <- df_res_wp %>% group_by(year, r5_x4_lbl) %>% summarise(mean_score = mean(score), .groups = "drop")
  pl5 <- ggplot(trend_score_pred, aes(x = year, y = mean_score, color = r5_x4_lbl, group = r5_x4_lbl)) +
   geom_line(size = 1.2) + geom_point(size = 2) + scale_color_manual(values = cbb_palette_r5_x4, name="Predicted\ncoreceptor") +
   labs(x = "Year", y = "Mean score", colour = "Prediction") + theme_bw() #title = "Trend in score over time for X4 (1) and R5 (0)"
- ggsave(plot=pl5, file=glue("results/coreceptor_analysis/web_pssm/{out_pref}_trend_score_0_1.png"), dpi=300, width=8, height=6)
+ ggsave(plot=pl5, file=glue("{RES_COREC_AN}/web_pssm/{out_pref}_trend_score_0_1.png"), dpi=300, width=8, height=6)
  
  # plot variables facets in R when r5_x4_lbl=R5 and X4
  df_res_wp_long <- df_res_wp %>%
@@ -117,20 +117,21 @@ summarise_coreceptor_usage_webpssm <- function(file_path_res, out_pref) {
   facet_wrap(~ variable, scales = "free_x") + scale_fill_manual(values = cbb_palette_r5_x4, name="Predicted\ncoreceptor") +
   labs( x = "Value", y = "Count") +
   theme_bw() + theme(strip.text = element_text(size = 10, face = "bold"), axis.text.x = element_text(size = 8))
- ggsave(plot=pl6, file=glue("results/coreceptor_analysis/web_pssm/{out_pref}_facets.png"), dpi=300, width=12, height=9)
+ ggsave(plot=pl6, file=glue("{RES_COREC_AN}/web_pssm/{out_pref}_facets.png"), dpi=300, width=12, height=9)
  
  list(df=df_res_wp, summary=df_res_wp_summ, pl=pl, pl3=pl3)
 }
 
-wp_nt <- summarise_coreceptor_usage_webpssm("results/coreceptor_analysis/web_pssm/web_pssm_output_from_nt_input.csv", "nt_pred")
-wp_aa <- summarise_coreceptor_usage_webpssm("results/coreceptor_analysis/web_pssm/web_pssm_output_from_aa_input.csv", "aa_pred") # basically the same, so using nt above
-saveRDS(wp_nt, "results/coreceptor_analysis/web_pssm/wp_nt.rds")
-saveRDS(wp_aa, "results/coreceptor_analysis/web_pssm/wp_aa.rds")
+wp_nt <- summarise_coreceptor_usage_webpssm(glue("{RES_COREC_AN}/web_pssm/web_pssm_output_from_nt_input.csv"), "nt_pred")
+wp_aa <- summarise_coreceptor_usage_webpssm(glue("{RES_COREC_AN}/web_pssm/web_pssm_output_from_aa_input.csv"), "aa_pred") # basically the same, so using nt above
+saveRDS(wp_nt, "{RES_COREC_AN}/web_pssm/wp_nt.rds")
+saveRDS(wp_aa, "{RES_COREC_AN}/web_pssm/wp_aa.rds")
 
 # plot CD4s per coreceptor
-cd4s_popart <- readRDS("data/coreceptor_analysis/popart_cd4s.rds")
+DATA_PATH <- "data"
+cd4s_popart <- readRDS(glue("{DATA_PATH}/popart_cd4s.rds"))
 cd4s_popart$sequence_id_pangea <- gsub("-", "_", cd4s_popart$sequence_id_pangea)
-wp_nt <- readRDS("results/coreceptor_analysis/web_pssm/wp_nt.rds")
+wp_nt <- readRDS("{RES_COREC_AN}/web_pssm/wp_nt.rds")
 wp_nt_df <- wp_nt$df
 
 # cd4 count
