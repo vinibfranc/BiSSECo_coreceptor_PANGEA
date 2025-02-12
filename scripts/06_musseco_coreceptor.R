@@ -1,5 +1,5 @@
-#devtools::install_github("https://github.com/emvolz/musseco", auth_token="...")
-libs_load <- c("musseco","glue", "mlesky","ape","ggplot2","ggpubr","scales")
+#devtools::install_github("https://github.com/emvolz-phylodynamics/musseco")
+libs_load <- c("musseco","glue", "mlesky","ape","ggplot2","ggpubr","scales", "cowplot")
 invisible( lapply(libs_load, library, character.only=TRUE) )
 
 source("scripts/plot_config.R")
